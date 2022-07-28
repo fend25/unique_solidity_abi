@@ -1,6 +1,6 @@
 {
   "name": "unique_solidity_abi",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "exports": {
     "./*": "./dist/*"
   },
