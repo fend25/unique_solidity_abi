@@ -4,10 +4,10 @@
 
 ```ts
 import {ethers} from 'ethers'
+import {Address} from '@unique-nft/utils'
 import {
   CollectionHelpersFactory,
   UniqueNFTFactory,
-  collectionIdToLowercaseAddress
 } from '@unique-nft/solidity-interfaces'
 
 const provider = new ethers.providers.JsonRpcProvider('https://rpc-opal.unique.network')
@@ -23,28 +23,36 @@ const collectionHelpers = await CollectionHelpersFactory(wallet, ethers) // ethe
 const txCreateCollection = await (await collectionHelpers.createNFTCollection(
   'My Collection', // collection name
   'Fancy collection description', // collection description
-  'MYCL' // token prefix - short, up to 4 letters string
+  'MYCL', // token prefix - short, up to 4 letters string
+  {value: await collectionHelpers.collectionCreationFee()}
 )).wait()
 
 const collectionAddress = txCreateCollection.events?.[0].args?.collectionId as string
 
-const txMakeCompatible = await (await collectionHelpers.makeCollectionERC721Compatible(
+// make collection ERC721Metadata compatible, to create necessary properties and activate
+// corresponding supportsInterface and enable mintWithTokenURI and tokenURI methods 
+//
+// Actually it's optional but if we want to make it compatible with 
+// common ethereum-world NFT collections, it's better to enable this compatibility.
+// anyway, it just improves the collection and doesn't brake or mangle anything. 
+const txMakeCompatible = await (await collectionHelpers.makeCollectionERC721MetadataCompatible(
   collectionAddress,
   '' // baseURI
 )).wait()
+console.log(`Collection #${collectionId} (address ${collectionAddress}) is now ERC721Compatible`)
 
 const collection = await UniqueNFTFactory(collectionAddress, wallet, ethers)
 
 const txMintToken = await (await collection.mintWithTokenURI(
   wallet.address,
-  'https://ipfs.unique.network/ipfs/QmZ8Syn28bEhZJKYeZCxUTM5Ut74ccKKDbQCqk5AuYsEnp'
+  'ipfs://QmZ8Syn28bEhZJKYeZCxUTM5Ut74ccKKDbQCqk5AuYsEnp'
 )).wait()
 
 // this .toNumber() type casting is safe because tokenId upper boundary is 2**32
 const tokenId = txMintToken.events?.[0].args?.tokenId.toNumber()
+const tokenUri = await collection.tokenURI(tokenId)
 
-console.log(`You have successfully created collection ${collectionAddress} and minted token #${tokenId}`)
-
+console.log(`Successfully minted token #${tokenId}, it's URI is: ${tokenUri}`)
 ```
 
 ## Exports
