@@ -10,6 +10,7 @@ const config = {
     publishConfig: {
       access: "public",
     },
+    publishPath: "./dist",
   },
   git: {
     requireCleanWorkingDir: false,

@@ -1,6 +1,5 @@
-import * as constants from './constants'
+import {constants, Address} from '@unique-nft/utils/index'
 export {constants}
-const {STATIC_ADDRESSES, COLLECTION_ADDRESS_PREFIX} = constants
 
 import type {ethers as _Ethers, Signer} from 'ethers'
 type Ethers = typeof _Ethers
@@ -11,13 +10,17 @@ import type {
   ContractHelpers,
   UniqueNFT,
   UniqueFungible,
-} from '../factory/ethers'
+  UniqueRefungible,
+  UniqueRefungibleToken,
+} from '../dist/ethers'
 
 export type {
   CollectionHelpers,
   ContractHelpers,
   UniqueNFT,
   UniqueFungible,
+  UniqueRefungible,
+  UniqueRefungibleToken,
 }
 
 const getEthers = async (ethers?: Ethers): Promise<Ethers> => {
@@ -25,18 +28,26 @@ const getEthers = async (ethers?: Ethers): Promise<Ethers> => {
   return (await import('ethers')).ethers
 }
 
-export const collectionIdToLowercaseAddress = (collectionId: number) => {
-  if (isNaN(collectionId)) throw new Error(`Passed number is NaN: ${collectionId}`)
-  if (collectionId < 0) throw new Error(`Passed number is less than 0: ${collectionId}`)
-  if (collectionId > 0xFFFFFFFF) throw new Error(`Passed number is more than 2**32: ${collectionId}`)
-
-  return COLLECTION_ADDRESS_PREFIX + collectionId.toString(16).padStart(8, '0')
-}
 
 const collectionIdOrAddressToAddress = (collectionIdOrAddress: number | string): string => {
   return typeof collectionIdOrAddress === 'string'
     ? collectionIdOrAddress
-    : collectionIdToLowercaseAddress(collectionIdOrAddress);
+    : Address.collection.idToAddress(collectionIdOrAddress)
+}
+
+export type RefungibleTokenCollectionAndTokenId = {
+  collectionIdOrAddress: number | string
+  tokenId: number
+}
+const tokenIdOrAddressToAddress = (tokenIdOrAddress: RefungibleTokenCollectionAndTokenId | string): string => {
+  if (typeof tokenIdOrAddress === 'string') {
+    return tokenIdOrAddress
+  }
+  const collectionId = typeof tokenIdOrAddress.collectionIdOrAddress === 'number'
+    ? tokenIdOrAddress.collectionIdOrAddress
+    : Address.collection.addressToId(tokenIdOrAddress.collectionIdOrAddress)
+
+  return Address.nesting.idsToAddress(collectionId, tokenIdOrAddress.tokenId)
 }
 
 
@@ -45,8 +56,8 @@ export const CollectionHelpersFactory = async (signerOrProvider: SignerOrProvide
   const ethersLib = await getEthers(ethers)
 
   return new ethersLib.Contract(
-    STATIC_ADDRESSES.collectionHelpers,
-    (await import('../abi/CollectionHelpers.json')).default,
+    constants.STATIC_ADDRESSES.collectionHelpers,
+    (await import('../dist/abi/CollectionHelpers.json')).default,
     signerOrProvider
   ) as CollectionHelpers
 }
@@ -55,8 +66,8 @@ export const ContractHelpersFactory = async (signerOrProvider: SignerOrProvider,
   const ethersLib = await getEthers(ethers)
 
   return new ethersLib.Contract(
-    STATIC_ADDRESSES.contractHelpers,
-    (await import('../abi/ContractHelpers.json')).default,
+    constants.STATIC_ADDRESSES.contractHelpers,
+    (await import('../dist/abi/ContractHelpers.json')).default,
     signerOrProvider
   ) as ContractHelpers
 }
@@ -66,7 +77,7 @@ export const UniqueNFTFactory = async (collectionIdOrAddress: number | string, s
 
   return new ethersLib.Contract(
     collectionIdOrAddressToAddress(collectionIdOrAddress),
-    (await import('../abi/UniqueNFT.json')).default,
+    (await import('../dist/abi/UniqueNFT.json')).default,
     signerOrProvider
   ) as UniqueNFT
 }
@@ -76,7 +87,29 @@ export const UniqueFungibleFactory = async (collectionIdOrAddress: number | stri
 
   return new ethersLib.Contract(
     collectionIdOrAddressToAddress(collectionIdOrAddress),
-    (await import('../abi/UniqueFungible.json')).default,
+    (await import('../dist/abi/UniqueFungible.json')).default,
+    signerOrProvider
+  ) as UniqueFungible
+}
+
+export const UniqueRefungibleFactory = async (collectionIdOrAddress: number | string, signerOrProvider: SignerOrProvider, ethers?: Ethers) => {
+  const ethersLib = await getEthers(ethers)
+
+  return new ethersLib.Contract(
+    collectionIdOrAddressToAddress(collectionIdOrAddress),
+    (await import('../dist/abi/UniqueRefungible.json')).default,
+    signerOrProvider
+  ) as UniqueFungible
+}
+
+export const UniqueRefungibleTokenFactory = async (tokenIdOrAddress: RefungibleTokenCollectionAndTokenId | string, signerOrProvider: SignerOrProvider, ethers?: Ethers) => {
+  const ethersLib = await getEthers(ethers)
+
+  const address = tokenIdOrAddressToAddress(tokenIdOrAddress)
+
+  return new ethersLib.Contract(
+    collectionIdOrAddressToAddress(address),
+    (await import('../dist/abi/UniqueRefungible.json')).default,
     signerOrProvider
   ) as UniqueFungible
 }

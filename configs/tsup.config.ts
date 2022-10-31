@@ -15,6 +15,7 @@ export default defineConfig([
     name: 'main',
     ...coreOptions,
     format: ['esm', 'cjs'],
+    splitting: true,
     external: [/^ethers/],
   },
 
@@ -22,33 +23,8 @@ export default defineConfig([
     name: 'main-iife',
     ...coreOptions,
     format: ['iife'],
+    splitting: false,
     noExternal: [/.*/],
     platform: 'browser'
-  },
-
-  {
-    entry: {
-      ethers: "factory/ethers/index.ts",
-    },
-    name: 'ethers',
-    outDir: 'dist',
-    target: 'es2020',
-    dts: true,
-    sourcemap: true,
-    format: ['esm', 'cjs'],
-    external: [/^ethers/],
-  },
-
-  {
-    entry: {
-      web3: "factory/web3/index.ts",
-    },
-    name: 'web3',
-    outDir: 'dist',
-    target: 'es2020',
-    dts: true,
-    sourcemap: true,
-    format: ['esm', 'cjs'],
-    external: [/^web3/],
   },
 ])

@@ -37,7 +37,7 @@ export const downloadFile = async (destination: string, url: string, headers: Ou
 
 const exec = promisify(childProcess.exec)
 
-const DEFAULT_BRANCH = `master`
+const DEFAULT_BRANCH = `release-v930032`
 const getGithubRepoTreeUrl = (branch: string = DEFAULT_BRANCH) =>
   `https://api.github.com/repos/UniqueNetwork/unique-chain/git/trees/${branch}?recursive=1`
 const getGithubRawFileUrl = (filepath: string, branch: string = DEFAULT_BRANCH) =>
@@ -94,7 +94,8 @@ const compileSmartContracts = async (contractsPath: string, abiPath: string) => 
 
   const smartContractsFolderContents = (await fs.readdir(contractsPath))
 
-  for (const fileName of smartContractsFolderContents) {
+
+  await Promise.all(smartContractsFolderContents.map(async (fileName) => {
     const filePath = path.join(contractsPath, fileName)
 
     const start = Date.now()
@@ -105,9 +106,9 @@ const compileSmartContracts = async (contractsPath: string, abiPath: string) => 
     const finish = Date.now()
     console.log(`Compiled ${fileName} in ${finish - start}ms`, stdout)
     if (stderr) {
-      console.error(stderr)
+      throw new Error(`Compiling ${fileName}, something went wrong: ${stderr}`)
     }
-  }
+  }))
 }
 
 const shrinkAbis = async (abiPath: string) => {
@@ -179,8 +180,7 @@ const typeChainWeb3 = async (abiPath: string, web3TypesPath: string) => {
 
 const cleanDir = async (dirPath: string) => {
   try {
-    const stat = await fs.stat(dirPath)
-    console.log('stat', dirPath, stat)
+    await fs.stat(dirPath)
   } catch {
     await fs.mkdir(dirPath)
     return
@@ -203,16 +203,14 @@ const main = async () => {
   const distPath = path.join(dataRootPath, 'dist')
   await cleanDir(distPath)
 
-  const contractsPath = path.join(dataRootPath, 'contracts')
-  const abiPath = path.join(dataRootPath, 'abi')
-  const factoryPath = path.join(dataRootPath, 'factory')
-  const ethersTypesPath = path.join(factoryPath, 'ethers')
-  const web3TypesPath = path.join(factoryPath, 'web3')
+  const contractsPath = path.join(distPath, 'contracts')
+  await fs.mkdir(contractsPath)
+  const abiPath = path.join(distPath, 'abi')
+  await fs.mkdir(abiPath)
 
-  await cleanDir(contractsPath)
-  await cleanDir(abiPath)
-  await cleanDir(factoryPath)
+  const ethersTypesPath = path.join(distPath, 'ethers')
   await fs.mkdir(ethersTypesPath)
+  const web3TypesPath = path.join(distPath, 'web3')
   await fs.mkdir(web3TypesPath)
 
   await downloadStubs(contractsPath)
