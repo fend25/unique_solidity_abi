@@ -3,9 +3,7 @@ import Semver, {SemVer} from 'semver'
 import {program} from 'commander'
 import fs from 'node:fs/promises'
 
-const PACKAGE_JSON_PATH = './dist/package.json' as const
-//@ts-ignore
-const packageJson = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH, 'utf-8'))
+import packageJson from './package.json'
 
 const versions = Array.from(await packageVersions(packageJson.name))
 
@@ -20,16 +18,18 @@ const regularNextPatch = Semver.parse(currentRegular.format())!.inc('patch')
 const regularNextMinor = Semver.parse(currentRegular.format())!.inc('minor')
 const regularNextMajor = Semver.parse(currentRegular.format())!.inc('major')
 
-const nextBeta = currentBeta
+const nextBeta = (currentBeta && Semver.gt(currentBeta, currentRegular))
   ? Semver.parse(currentBeta.format())!.inc('prerelease', 'beta')
-  : Semver.parse(regularNextPatch.format())!.inc('prerelease', 'beta')
+  : Semver.parse(currentRegular.format())!.inc('prerelease', 'beta')
 
 
-console.log(currentRegular.format())
-console.log(regularNextPatch.format())
-console.log(regularNextMinor.format())
-console.log(regularNextMajor.format())
-console.log(nextBeta.format())
+console.log('current:', currentRegular.format())
+console.log('current beta:', currentBeta ? currentBeta.format() : 'no beta published')
+console.log()
+console.log('next patch:', regularNextPatch.format())
+console.log('next minor:', regularNextMinor.format())
+console.log('next major:', regularNextMajor.format())
+console.log('next beta:', nextBeta.format())
 
 program
   .option('--beta')
@@ -40,7 +40,6 @@ program
 program.parse()
 
 const options = program.opts()
-console.log(options)
 
 if (options.beta) {
   packageJson.version = nextBeta.format()
@@ -52,5 +51,4 @@ if (options.beta) {
   packageJson.version = regularNextMajor.format()
 }
 
-await fs.writeFile(PACKAGE_JSON_PATH, JSON.stringify(packageJson, null, 2))
-
+await fs.writeFile('./package.json', JSON.stringify(packageJson, null, 2))

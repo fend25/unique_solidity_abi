@@ -20,8 +20,8 @@
     "build:tsup": "yarn tsup --config configs/tsup.config.ts",
     "copy_files": "cpy ./package.json ./README.md ./dist",
     "build": "yarn clean && yarn build:compile && yarn build:tsup && yarn copy_files",
-    "release:beta": "yarn build && yarn tsx bumper.mts --beta && cd dist && npm publish --tag beta",
-    "release:patch": "yarn build && yarn tsx bumper.mts --patch && cd dist && npm publish"
+    "release:beta": "tsx bumper.mts --beta && npm run copy_files && cd dist && npm publish --tag beta",
+    "release:patch": "tsx bumper.mts --patch && npm run copy_files && cd dist && npm publish"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^10.1.0",
