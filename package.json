@@ -1,6 +1,6 @@
 {
   "name": "unique_solidity_abi",
-  "version": "0.3.1",
+  "version": "0.3.2-beta.0",
   "license": "MIT",
   "description": "Solidity smart contracts and ethers.js/web3 wrappings for Unique network techonologies",
   "publishConfig": {
