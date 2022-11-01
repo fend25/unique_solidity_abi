@@ -60,7 +60,9 @@ console.log(`Successfully minted token #${tokenId}, it's URI is: ${tokenUri}`)
 ### Solidity interfaces and smart contracts and ABI:
 
 `import {...} from '@unique-nft/solidity-abi/contracts'`
+
 `import {...} from '@unique-nft/solidity-abi/abi'`
+
 Unique interfaces and smart contracts solidity sources:
 
 - CollectionHelpers.sol / .json
