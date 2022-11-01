@@ -1,6 +1,6 @@
 {
   "name": "unique_solidity_abi",
-  "version": "0.3.2-beta.0",
+  "version": "0.3.1",
   "license": "MIT",
   "description": "Solidity smart contracts and ethers.js/web3 wrappings for Unique network techonologies",
   "publishConfig": {
@@ -22,6 +22,9 @@
     "copy_files": "cpy ./package.json ./README.md ./dist",
     "patch": "npm run release -- -i patch --ci",
     "release": "dotenv -e ./configs/.release.env -- release-it --config ./configs/.release-it.js --github.release",
+    "prerelease:patch": "dotenv -e ./configs/.release.env -- release-it --config ./configs/.release-it.js release-it --prepatch --preReleaseId=beta --npm.tag=beta",
+    "prerelease:minor": "dotenv -e ./configs/.release.env -- release-it --config ./configs/.release-it.js release-it --preminor --preReleaseId=beta --npm.tag=beta",
+    "prerelease:major": "dotenv -e ./configs/.release.env -- release-it --config ./configs/.release-it.js release-it --premajor --preReleaseId=beta --npm.tag=beta",
     "testrun": "vitest run",
     "test": "vitest"
   },
